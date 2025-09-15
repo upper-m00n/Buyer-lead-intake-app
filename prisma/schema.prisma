@@ -1,0 +1,100 @@
+// This is the full and correct schema file.
+// Replace the entire content of your prisma/schema.prisma with this.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- ENUMS ---
+enum City {
+  Chandigarh
+  Mohali
+  Zirakpur
+  Panchkula
+  Other
+}
+
+enum PropertyType {
+  Apartment
+  Villa
+  Plot
+  Office
+  Retail
+}
+
+enum Bhk {
+  One
+  Two
+  Three
+  Four
+  Studio
+}
+
+enum Purpose {
+  Buy
+  Rent
+}
+
+enum Timeline {
+  ZeroToThreeMonths
+  ThreeToSixMonths
+  OverSixMonths
+  Exploring
+}
+
+enum Source {
+  Website
+  Referral
+  WalkIn
+  Call
+  Other
+}
+
+enum Status {
+  New
+  Qualified
+  Contacted
+  Visited
+  Negotiation
+  Converted
+  Dropped
+}
+
+// --- MODELS ---
+model Buyer {
+  id           String   @id @default(uuid())
+  fullName     String   @db.VarChar(80)
+  email        String?  @db.VarChar(255)
+  phone        String   @db.VarChar(15)
+  city         City
+  propertyType PropertyType
+  bhk          Bhk?
+  purpose      Purpose
+  budgetMin    Int?
+  budgetMax    Int?
+  timeline     Timeline
+  source       Source
+  status       Status   @default(New)
+  notes        String?  @db.Text
+  tags         String[]
+  ownerId      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  history BuyerHistory[]
+}
+
+model BuyerHistory {
+  id          String   @id @default(cuid())
+  buyerId     String
+  changedById String
+  changedAt   DateTime @default(now())
+  diff        Json
+
+  buyer Buyer @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
