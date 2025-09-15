@@ -10,7 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- ENUMS ---
 enum City {
   Chandigarh
   Mohali
@@ -65,7 +64,14 @@ enum Status {
   Dropped
 }
 
-// --- MODELS ---
+model User {
+  id    String  @id @unique
+  email String  @unique
+
+  // Add this relation to connect User back to Buyer
+  buyers Buyer[]
+}
+
 model Buyer {
   id           String   @id @default(uuid())
   fullName     String   @db.VarChar(80)
@@ -86,7 +92,9 @@ model Buyer {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  owner   User   @relation(fields: [ownerId], references: [id])
   history BuyerHistory[]
+
 }
 
 model BuyerHistory {
