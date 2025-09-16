@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { TagInput } from '@/components/ui/TagInput'
 import {
   Select,
   SelectContent,
@@ -89,7 +90,7 @@ export default function CreateBuyerPage() {
                 <FormItem>
                   <FormLabel>Full Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} id="fullName" name="fullName" />
+                    <Input placeholder="Your name" {...field} id="fullName" name="fullName" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -102,7 +103,7 @@ export default function CreateBuyerPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="john.doe@example.com" {...field} id="email" name="email" />
+                    <Input placeholder="your email" {...field} id="email" name="email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -358,7 +359,25 @@ export default function CreateBuyerPage() {
               )}
             />
           </div>
-          <Button type="submit" onClick={() => alert('Button clicked')}>Create Lead</Button>
+          <FormField
+            control={form.control}
+            name="tags"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tags</FormLabel>
+                <FormControl>
+                  <TagInput
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    suggestions={["hot", "follow-up", "NRI", "investor", "urgent", "repeat", "premium"]}
+                    placeholder="Add tags..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit">Create Lead</Button>
         </form>
       </FormProvider>
     </div>

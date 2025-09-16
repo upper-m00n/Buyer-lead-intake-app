@@ -67,8 +67,32 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Buyer Leads</h1>
       <ImportExportCSV params={params.toString()} />
-      <form className="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4" action="" method="get">
-        {/* ...existing code... */}
+      <form className="mb-4 grid grid-cols-1 md:grid-cols-6 gap-4" action="" method="get">
+        <select name="city" defaultValue={city} className="border p-2 rounded">
+          <option value="">City</option>
+          {['Chandigarh', 'Mohali', 'Zirakpur', 'Panchkula', 'Other'].map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <select name="propertyType" defaultValue={propertyType} className="border p-2 rounded">
+          <option value="">Property Type</option>
+          {['Apartment', 'Villa', 'Plot', 'Office', 'Retail'].map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+        <select name="status" defaultValue={status} className="border p-2 rounded">
+          <option value="">Status</option>
+          {['New', 'Qualified', 'Contacted', 'Visited', 'Negotiation', 'Converted', 'Dropped'].map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+        <select name="timeline" defaultValue={timeline} className="border p-2 rounded">
+          <option value="">Timeline</option>
+          {['ZeroToThreeMonths', 'ThreeToSixMonths', 'OverSixMonths', 'Exploring'].map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+        <input name="search" defaultValue={search} className="border p-2 rounded" placeholder="Search name, phone, email..." />
         <Button type="submit">Filter</Button>
       </form>
       <table className="w-full border">
