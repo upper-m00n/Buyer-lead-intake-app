@@ -1,45 +1,23 @@
-// src/middleware.ts
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getIronSession } from 'iron-session'
+import { SessionData, sessionOptions } from '@/lib/session'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  const session = await getIronSession<SessionData>(
     {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
-          response.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
+      get: (name: string) => request.cookies.get(name),
+      set: () => {},
+    },
+    sessionOptions
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { userId } = session
 
-  if (!session && request.nextUrl.pathname.startsWith('/buyers')) {
+  if (!userId && request.nextUrl.pathname.startsWith('/buyers/new')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
-
-  return response
+  return NextResponse.next()
 }
 
 export const config = {
