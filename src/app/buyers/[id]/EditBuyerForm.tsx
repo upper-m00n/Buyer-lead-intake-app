@@ -28,6 +28,8 @@ export default function EditBuyerForm({ buyer, history }: { buyer: any, history:
         toast.success('Buyer updated sucessfully!');
         router.push(`/buyers`)
         window.location.reload();
+      } else if (res.status === 409) {
+        toast.error('Record changed, please refresh and try again.');
       } else {
         alert(result.error || 'Error updating buyer');
       }

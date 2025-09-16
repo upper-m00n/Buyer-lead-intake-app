@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 
+import ImportExportCSV from './ImportExportCSV';
+
 
 function getFilters(searchParams: URLSearchParams) {
   return {
@@ -50,6 +52,7 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Buyer Leads</h1>
+      <ImportExportCSV params={params.toString()} />
       {/* Filters and search bar */}
       <form className="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4" action="" method="get">
         <select name="city" defaultValue={city} className="border p-2">
