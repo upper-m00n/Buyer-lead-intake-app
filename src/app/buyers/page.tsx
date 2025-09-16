@@ -1,11 +1,10 @@
+import StatusDropdownClient from './StatusDropdownClient';
 import { prisma } from '@/lib/prisma';
-
 import Link from 'next/link';
-
 import { Button } from '@/components/ui/button';
 import DeleteBuyerButton from './DeleteBuyerButton';
-
 import ImportExportCSV from './ImportExportCSV';
+
 
 
 function getFilters(searchParams: URLSearchParams) {
@@ -120,7 +119,13 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
                 <td>{buyer.propertyType}</td>
                 <td>{buyer.budgetMin || '-'} – {buyer.budgetMax || '-'}</td>
                 <td>{buyer.timeline}</td>
-                <td>{buyer.status}</td>
+                <td>
+                  {canEdit ? (
+                    <StatusDropdownClient buyerId={buyer.id} status={buyer.status} />
+                  ) : (
+                    buyer.status
+                  )}
+                </td>
                 <td>{new Date(buyer.updatedAt).toLocaleString()}</td>
                 <td>
                   <Link href={`/buyers/${buyer.id}`}><Button size="sm">View</Button></Link>
