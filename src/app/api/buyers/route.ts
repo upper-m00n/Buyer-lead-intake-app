@@ -22,16 +22,32 @@ export async function POST(request: Request) {
     if (!session.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const data = parsed.data
+    const data = parsed.data;
+
+    const fixEnum = (val: string, map: Record<string, string>) => map[val] || val;
+    const sourceMap = { 'Walk-in': 'WalkIn', 'WalkIn': 'WalkIn', 'Website': 'Website', 'Referral': 'Referral', 'Call': 'Call', 'Other': 'Other' };
+    const timelineMap = { 'ZeroToThreeMonths': 'ZeroToThreeMonths', 'ThreeToSixMonths': 'ThreeToSixMonths', 'OverSixMonths': 'OverSixMonths', 'Exploring': 'Exploring' };
+    const propertyTypeMap = { 'Apartment': 'Apartment', 'Villa': 'Villa', 'Plot': 'Plot', 'Office': 'Office', 'Retail': 'Retail' };
+    const cityMap = { 'Chandigarh': 'Chandigarh', 'Mohali': 'Mohali', 'Zirakpur': 'Zirakpur', 'Panchkula': 'Panchkula', 'Other': 'Other' };
+    const purposeMap = { 'Buy': 'Buy', 'Rent': 'Rent' };
+    const statusMap = { 'New': 'New', 'Qualified': 'Qualified', 'Contacted': 'Contacted', 'Visited': 'Visited', 'Negotiation': 'Negotiation', 'Converted': 'Converted', 'Dropped': 'Dropped' };
+    const bhkMap = { 'One': 'One', 'Two': 'Two', 'Three': 'Three', 'Four': 'Four', 'Studio': 'Studio' };
+
+    const { City, PropertyType, Bhk, Purpose, Timeline, Source, Status } = (await import('@prisma/client'));
+    const fixedSource = Source[fixEnum(data.source || 'Other', sourceMap) as keyof typeof Source];
     const prismaData = {
-  ...data,
-  bhk: data.bhk ? data.bhk as any : null,
-  timeline: data.timeline ? data.timeline as any : null,
-  source: data.source ? data.source as any : null,
-  budgetMin: typeof data.budgetMin === 'number' && !isNaN(data.budgetMin) ? data.budgetMin : null,
-  budgetMax: typeof data.budgetMax === 'number' && !isNaN(data.budgetMax) ? data.budgetMax : null,
-  ownerId: session.userId,
-    }
+      ...data,
+      city: City[fixEnum(data.city, cityMap) as keyof typeof City],
+      propertyType: PropertyType[fixEnum(data.propertyType, propertyTypeMap) as keyof typeof PropertyType],
+      bhk: data.bhk ? Bhk[fixEnum(data.bhk, bhkMap) as keyof typeof Bhk] : null,
+      purpose: Purpose[fixEnum(data.purpose, purposeMap) as keyof typeof Purpose],
+      timeline: Timeline[fixEnum(data.timeline, timelineMap) as keyof typeof Timeline],
+      source: fixedSource,
+      status: data.status ? Status[fixEnum(data.status, statusMap) as keyof typeof Status] : undefined,
+      budgetMin: typeof data.budgetMin === 'number' && !isNaN(data.budgetMin) ? data.budgetMin : null,
+      budgetMax: typeof data.budgetMax === 'number' && !isNaN(data.budgetMax) ? data.budgetMax : null,
+      ownerId: session.userId,
+    };
     try {
       const buyer = await prisma.buyer.create({
         data: prismaData,

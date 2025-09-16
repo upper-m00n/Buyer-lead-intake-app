@@ -1,8 +1,9 @@
 import { prisma } from '@/lib/prisma';
-import { CITIES, PROPERTY_TYPES, STATUSES, TIMELINES } from '@/lib/types';
+
 import Link from 'next/link';
-import { Suspense } from 'react';
+
 import { Button } from '@/components/ui/button';
+import DeleteBuyerButton from './DeleteBuyerButton';
 
 import ImportExportCSV from './ImportExportCSV';
 
@@ -37,6 +38,19 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
     ];
   }
 
+  // Get session user
+  const { getIronSession } = await import('iron-session');
+  const { sessionOptions } = await import('@/lib/session');
+  const { cookies } = await import('next/headers');
+  const cookieObj = await cookies();
+  const cookieStore = {
+    get: (name: string) => cookieObj.get(name),
+    set: () => {},
+  };
+  const session = await getIronSession(cookieStore, sessionOptions);
+  const userId = (session as { userId?: string }).userId || null;
+  const user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+
   const [buyers, total] = await Promise.all([
     prisma.buyer.findMany({
       where,
@@ -53,31 +67,8 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Buyer Leads</h1>
       <ImportExportCSV params={params.toString()} />
-      {/* Filters and search bar */}
       <form className="mb-4 grid grid-cols-1 md:grid-cols-5 gap-4" action="" method="get">
-        <select name="city" defaultValue={city} className="border p-2">
-          <option value="">All Cities</option>
-          {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select name="propertyType" defaultValue={propertyType} className="border p-2">
-          <option value="">All Property Types</option>
-          {PROPERTY_TYPES.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <select name="status" defaultValue={status} className="border p-2">
-          <option value="">All Statuses</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select name="timeline" defaultValue={timeline} className="border p-2">
-          <option value="">All Timelines</option>
-          {TIMELINES.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <input
-          type="search"
-          name="search"
-          defaultValue={search}
-          placeholder="Search name, phone, email"
-          className="border p-2"
-        />
+        {/* ...existing code... */}
         <Button type="submit">Filter</Button>
       </form>
       <table className="w-full border">
@@ -95,24 +86,28 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
           </tr>
         </thead>
         <tbody>
-          {buyers.map((buyer) => (
-            <tr key={buyer.id}>
-              <td>{buyer.fullName}</td>
-              <td>{buyer.phone}</td>
-              <td>{buyer.city}</td>
-              <td>{buyer.propertyType}</td>
-              <td>{buyer.budgetMin || '-'} – {buyer.budgetMax || '-'}</td>
-              <td>{buyer.timeline}</td>
-              <td>{buyer.status}</td>
-              <td>{new Date(buyer.updatedAt).toLocaleString()}</td>
-              <td>
-                <Link href={`/buyers/${buyer.id}`}><Button size="sm">View / Edit</Button></Link>
-              </td>
-            </tr>
-          ))}
+          {buyers.map((buyer) => {
+            const canEdit = user && (user.isAdmin || buyer.ownerId === user.id);
+            return (
+              <tr key={buyer.id}>
+                <td>{buyer.fullName}</td>
+                <td>{buyer.phone}</td>
+                <td>{buyer.city}</td>
+                <td>{buyer.propertyType}</td>
+                <td>{buyer.budgetMin || '-'} – {buyer.budgetMax || '-'}</td>
+                <td>{buyer.timeline}</td>
+                <td>{buyer.status}</td>
+                <td>{new Date(buyer.updatedAt).toLocaleString()}</td>
+                <td>
+                  <Link href={`/buyers/${buyer.id}`}><Button size="sm">View</Button></Link>
+                  {canEdit && <Link href={`/buyers/${buyer.id}`}><Button size="sm" className="ml-2">Edit</Button></Link>}
+                  {canEdit && <DeleteBuyerButton buyerId={buyer.id} />}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
-
       <div className="mt-4 flex gap-2">
         {Array.from({ length: totalPages }, (_, i) => (
           <Link key={i} href={`?${params.toString().replace(/page=\d+/, '')}&page=${i + 1}`}>

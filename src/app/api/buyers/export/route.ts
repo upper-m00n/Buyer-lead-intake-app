@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { CITIES, PROPERTY_TYPES, STATUSES, TIMELINES } from '@/lib/types';
 
 const CSV_HEADERS = [
   'fullName','email','phone','city','propertyType','bhk','purpose','budgetMin','budgetMax','timeline','source','notes','tags','status'
@@ -30,7 +29,7 @@ export async function GET(request: Request) {
       { email: { contains: params.get('search'), mode: 'insensitive' } },
     ];
   }
-  // TODO: Add sort if needed
+
   const buyers = await prisma.buyer.findMany({
     where,
     orderBy: { updatedAt: 'desc' },

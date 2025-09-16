@@ -1,6 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import { BuyerSchema } from '@/lib/validators';
-import { z } from 'zod';
 import { notFound } from 'next/navigation';
 import EditBuyerForm from './EditBuyerForm';
 

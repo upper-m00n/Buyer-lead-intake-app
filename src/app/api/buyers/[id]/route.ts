@@ -33,7 +33,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
     let body = await request.json();
-    // Convert tags string to array if needed
+
     if (typeof body.tags === 'string') {
       body.tags = body.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
     }
@@ -79,7 +79,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         ? (data.tags as string).split(',').map((t: string) => t.trim())
         : [],
     };
-    // Compute diff
+
     const diff: Record<string, { old: any, new: any }> = {};
     Object.keys(updateData).forEach((key) => {
       if ((updateData as Record<string, any>)[key] !== (existing as Record<string, any>)[key]) {
