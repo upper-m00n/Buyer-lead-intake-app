@@ -81,7 +81,6 @@ export default function CreateBuyerPage() {
       <h1 className="text-2xl font-bold mb-6">Create Buyer Lead</h1>
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* fullName, email, phone */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
@@ -148,6 +147,52 @@ export default function CreateBuyerPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="budgetMin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Min Budget</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 500000"
+                      id="budgetMin"
+                      name="budgetMin"
+                      min={0}
+                      value={field.value === undefined || field.value === null ? '' : Number(field.value)}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="budgetMax"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Budget</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 1000000"
+                      id="budgetMax"
+                      name="budgetMax"
+                      min={0}
+                      value={field.value === undefined || field.value === null ? '' : Number(field.value)}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -24,11 +24,13 @@ export async function POST(request: Request) {
     }
     const data = parsed.data
     const prismaData = {
-      ...data,
-      bhk: data.bhk ? data.bhk as any : null,
-      timeline: data.timeline ? data.timeline as any : null,
-      source: data.source ? data.source as any : null,
-      ownerId: session.userId,
+  ...data,
+  bhk: data.bhk ? data.bhk as any : null,
+  timeline: data.timeline ? data.timeline as any : null,
+  source: data.source ? data.source as any : null,
+  budgetMin: typeof data.budgetMin === 'number' && !isNaN(data.budgetMin) ? data.budgetMin : null,
+  budgetMax: typeof data.budgetMax === 'number' && !isNaN(data.budgetMax) ? data.budgetMax : null,
+  ownerId: session.userId,
     }
     try {
       const buyer = await prisma.buyer.create({
