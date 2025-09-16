@@ -30,7 +30,10 @@ export default function EditBuyerForm({ buyer, history }: { buyer: any, history:
         window.location.reload();
       } else if (res.status === 409) {
         toast.error('Record changed, please refresh and try again.');
-      } else {
+      }else if(res.status===403){
+        toast.error('You are not the owner')
+      }
+       else {
         alert(result.error || 'Error updating buyer');
       }
     }}>

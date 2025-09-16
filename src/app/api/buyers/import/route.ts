@@ -43,22 +43,18 @@ export async function POST(request: Request) {
 
   for (let i = 0; i < records.length; i++) {
     const row = records[i] as Record<string, any>;
-    // Convert tags to array (always array for Zod)
     if (typeof row.tags === 'string') {
       row.tags = row.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
     } else if (!Array.isArray(row.tags)) {
       row.tags = [];
     }
-    // Convert numbers
+
     if (row.budgetMin) row.budgetMin = Number(row.budgetMin);
     if (row.budgetMax) row.budgetMax = Number(row.budgetMax);
-    // Validate enums
-    // TODO: Validate enums against allowed values
     const parsed = BuyerSchema.safeParse(row);
     if (!parsed.success) {
       errors.push({ row: i + 2, message: parsed.error.issues.map((e: any) => e.message).join('; ') });
     } else {
-      // Add ownerId for relation
       if (!userId) {
         errors.push({ row: i + 2, message: 'Missing ownerId (user not authenticated)' });
         continue;

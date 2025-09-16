@@ -2,7 +2,7 @@ import { Magic } from '@magic-sdk/admin'
 import { NextResponse } from 'next/server'
 import { getIronSession } from 'iron-session'
 import { cookies } from 'next/headers'
-import prisma from '@/lib/prisma'
+import {prisma} from '@/lib/prisma'
 import { SessionData, sessionOptions } from '@/lib/session'
 
 const magic = new Magic(process.env.MAGIC_SECRET_KEY)
