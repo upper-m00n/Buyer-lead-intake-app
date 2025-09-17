@@ -30,14 +30,15 @@ function ErrorBoundary({ error }: { error: Error }) {
 
 export default async function BuyersPage({ searchParams }: { searchParams?: Record<string, string> }) {
   let paramsObj: Record<string, string> = {};
-  if (searchParams && typeof (searchParams as any).forEach === 'function') {
-    // URLSearchParams: convert to object
-    paramsObj = {};
-    (searchParams as any).forEach((value: string, key: string) => {
-      paramsObj[key] = value;
-    });
-  } else if (searchParams) {
-    paramsObj = searchParams;
+  if (searchParams) {
+    if (typeof (searchParams as any).forEach === 'function') {
+      // URLSearchParams: convert to object
+      (searchParams as any).forEach((value: string, key: string) => {
+        paramsObj[key] = value;
+      });
+    } else {
+      paramsObj = searchParams;
+    }
   }
   const params = new URLSearchParams(Object.entries(paramsObj));
   const { city, propertyType, status, timeline, search, page } = getFilters(params);

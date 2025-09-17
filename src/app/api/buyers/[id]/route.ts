@@ -14,13 +14,16 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
     }
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
-    if (buyer.ownerId !== session.userId && !(user as any)?.isAdmin) {
+  if (buyer.ownerId !== session.userId && !(user as { isAdmin?: boolean })?.isAdmin) {
       return NextResponse.json({ error: 'Forbidden: You do not own this buyer.' }, { status: 403 });
     }
     await prisma.buyer.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Server error', details: error }, { status: 500 });
   }
 }
 import { NextResponse } from 'next/server';
@@ -35,7 +38,7 @@ const rateLimitMap = new Map<string, { count: number; start: number }>();
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
-    let body = await request.json();
+  const body = await request.json();
 
     // Robustly map bhk value to enum
     const bhkEnum = ["One", "Two", "Three", "Four", "Studio"];
@@ -76,7 +79,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     // Simple rate limit per user/IP
-  let ipCookie = cookieObj.get('ip');
+  const ipCookie = cookieObj.get('ip');
   const ip = typeof ipCookie === 'string' ? ipCookie : ipCookie?.value || '';
   const userKey = session.userId || ip || 'anon';
     const now = Date.now();
