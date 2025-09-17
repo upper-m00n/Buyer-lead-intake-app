@@ -32,8 +32,8 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
   if (search) {
     where.OR = [
       { fullName: { contains: search, mode: 'insensitive' } },
-      { phone: { contains: search, mode: 'insensitive' } },
       { email: { contains: search, mode: 'insensitive' } },
+      { notes: { contains: search, mode: 'insensitive' } },
     ];
   }
 
