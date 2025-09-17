@@ -13,15 +13,18 @@ export async function login(formData: FormData) {
       cookies: {
         async get(name: string) {
           // Add async and await here
-          return (await cookies().get(name)?.value)
+          const cookieObj = await cookies();
+          return cookieObj.get(name)?.value;
         },
         async set(name: string, value: string, options) {
           // Add async and await here
-          await cookies().set({ name, value, ...options })
+          const cookieObj = await cookies();
+          await cookieObj.set({ name, value, ...options });
         },
         async remove(name: string, options) {
           // Add async and await here
-          await cookies().delete({ name, ...options })
+          const cookieObj = await cookies();
+          await cookieObj.delete({ name, ...options });
         },
       },
     }
