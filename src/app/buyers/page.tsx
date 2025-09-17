@@ -31,9 +31,9 @@ function ErrorBoundary({ error }: { error: Error }) {
 export default async function BuyersPage({ searchParams }: { searchParams?: Record<string, string> }) {
   let paramsObj: Record<string, string> = {};
   if (searchParams) {
-    if (typeof (searchParams as any).forEach === 'function') {
-      // URLSearchParams: convert to object
-      (searchParams as any).forEach((value: string, key: string) => {
+    // Check if searchParams is a URLSearchParams instance
+    if (typeof window !== 'undefined' && searchParams instanceof URLSearchParams) {
+      searchParams.forEach((value: string, key: string) => {
         paramsObj[key] = value;
       });
     } else {
