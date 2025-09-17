@@ -47,339 +47,223 @@ export default function CreateBuyerPage() {
       fullName: '',
       email: '',
       phone: '',
-      notes: '',
+      city: undefined,
       budgetMin: undefined,
       budgetMax: undefined,
+      propertyType: undefined,
+      bhk: undefined,
+      purpose: undefined,
+      source: undefined,
+      timeline: undefined,
       tags: [],
     },
-  })
+  });
 
+    // ...existing logic for submit handler, etc...
 
-  console.log('Form errors:', form.formState.errors)
-
-  const propertyTypeWatcher = form.watch('propertyType')
-
-  async function onSubmit(values: BuyerFormData) {
-  console.log('Submitting lead:', values)
-    try {
-      const response = await axios.post('/api/buyers', values)
-      console.log('API response:', response)
-      if (response.data.error) {
-        alert('API error: ' + JSON.stringify(response.data.error))
-        return
+    const onSubmit = async (data: BuyerFormData) => {
+      try {
+        await axios.post('/api/buyers', data);
+        toast.success('Buyer lead created successfully!');
+        form.reset();
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || 'Failed to create buyer lead');
       }
-      toast("Lead created successfully!");
+    };
 
-      window.location.href = '/buyers'
-    } catch (error: any) {
-      console.error('API error:', error)
-      alert(error?.response?.data?.error || error?.message || 'An error occurred')
-    }
-  }
-
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Create Buyer Lead</h1>
+    return (
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your name" {...field} id="fullName" name="fullName" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="your email" {...field} id="email" name="email" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="9876543210" {...field} id="phone" name="phone" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8 space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Create Buyer Lead</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField control={form.control} name="fullName" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="fullName">Full Name *</FormLabel>
+                <FormControl>
+                  <Input className="input input-bordered w-full" placeholder="John Doe" {...field} id="fullName" name="fullName" aria-required="true" aria-invalid={!!form.formState.errors.fullName} aria-describedby="fullName-error" />
+                </FormControl>
+                <FormMessage id="fullName-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="email" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormControl>
+                  <Input className="input input-bordered w-full" placeholder="john.doe@example.com" {...field} id="email" name="email" aria-invalid={!!form.formState.errors.email} aria-describedby="email-error" />
+                </FormControl>
+                <FormMessage id="email-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="phone" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="phone">Phone *</FormLabel>
+                <FormControl>
+                  <Input className="input input-bordered w-full" placeholder="9876543210" {...field} id="phone" name="phone" aria-required="true" aria-invalid={!!form.formState.errors.phone} aria-describedby="phone-error" />
+                </FormControl>
+                <FormMessage id="phone-error" aria-live="assertive" />
+              </FormItem>
+            )} />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger id="city" name="city">
-                        <SelectValue placeholder="Select a city" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {CITIES.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="budgetMin"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Min Budget</FormLabel>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField control={form.control} name="city" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="city">City *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 500000"
-                      id="budgetMin"
-                      name="budgetMin"
-                      min={0}
-                      value={field.value === undefined || field.value === null ? '' : Number(field.value)}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                    />
+                    <SelectTrigger id="city" name="city" aria-required="true" aria-invalid={!!form.formState.errors.city} aria-describedby="city-error">
+                      <SelectValue placeholder="Select a city" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="budgetMax"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Max Budget</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 1000000"
-                      id="budgetMax"
-                      name="budgetMax"
-                      min={0}
-                      value={field.value === undefined || field.value === null ? '' : Number(field.value)}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="propertyType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Type *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger id="propertyType" name="propertyType">
-                        <SelectValue placeholder="Select a property type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PROPERTY_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {(propertyTypeWatcher === 'Apartment' ||
-              propertyTypeWatcher === 'Villa') && (
-              <FormField
-                control={form.control}
-                name="bhk"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>BHK *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger id="bhk" name="bhk">
-                          <SelectValue placeholder="Select BHK" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {BHK_OPTIONS.map((bhk) => {
-                          const bhkLabelMap: Record<string, string> = {
-                            One: '1 BHK',
-                            Two: '2 BHK',
-                            Three: '3 BHK',
-                            Four: '4 BHK',
-                            Studio: 'Studio',
-                          };
-                          return (
-                            <SelectItem key={bhk} value={bhk}>
-                              {bhkLabelMap[bhk]}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+                  <SelectContent>
+                    {CITIES.map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage id="city-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="budgetMin" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="budgetMin">Min Budget</FormLabel>
+                <FormControl>
+                  <Input className="input input-bordered w-full" type="number" placeholder="e.g. 500000" id="budgetMin" name="budgetMin" min={0} value={field.value === undefined || field.value === null ? '' : Number(field.value)} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} aria-invalid={!!form.formState.errors.budgetMin} aria-describedby="budgetMin-error" />
+                </FormControl>
+                <FormMessage id="budgetMin-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="budgetMax" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="budgetMax">Max Budget</FormLabel>
+                <FormControl>
+                  <Input className="input input-bordered w-full" type="number" placeholder="e.g. 1000000" id="budgetMax" name="budgetMax" min={0} value={field.value === undefined || field.value === null ? '' : Number(field.value)} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} aria-invalid={!!form.formState.errors.budgetMax} aria-describedby="budgetMax-error" />
+                </FormControl>
+                <FormMessage id="budgetMax-error" aria-live="assertive" />
+              </FormItem>
+            )} />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="purpose"
-              render={({ field }) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField control={form.control} name="propertyType" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="propertyType">Property Type *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger id="propertyType" name="propertyType" aria-required="true" aria-invalid={!!form.formState.errors.propertyType} aria-describedby="propertyType-error">
+                      <SelectValue placeholder="Select a property type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PROPERTY_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage id="propertyType-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            {(form.watch('propertyType') === 'Apartment' || form.watch('propertyType') === 'Villa') && (
+              <FormField control={form.control} name="bhk" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Purpose *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <FormLabel htmlFor="bhk">BHK *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger id="purpose" name="purpose">
-                        <SelectValue placeholder="Select purpose" />
+                      <SelectTrigger id="bhk" name="bhk" aria-required="true" aria-invalid={!!form.formState.errors.bhk} aria-describedby="bhk-error">
+                        <SelectValue placeholder="Select BHK" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {PURPOSES.map((purpose) => (
-                        <SelectItem key={purpose} value={purpose}>
-                          {purpose}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="source"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Source *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger id="source" name="source">
-                        <SelectValue placeholder="Select source" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {SOURCES.map((source) => (
-                        <SelectItem key={source} value={source}>
-                          {source}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="timeline"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Timeline *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger id="timeline" name="timeline">
-                        <SelectValue placeholder="Select timeline" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TIMELINES.map((timeline) => {
-                        const timelineLabelMap: Record<string, string> = {
-                          ZeroToThreeMonths: '0-3m',
-                          ThreeToSixMonths: '3-6m',
-                          OverSixMonths: '>6m',
-                          Exploring: 'Exploring',
+                      {BHK_OPTIONS.map((bhk) => {
+                        const bhkLabelMap: Record<string, string> = {
+                          One: '1 BHK',
+                          Two: '2 BHK',
+                          Three: '3 BHK',
+                          Four: '4 BHK',
+                          Studio: 'Studio',
                         };
-                        return (
-                          <SelectItem key={timeline} value={timeline}>
-                            {timelineLabelMap[timeline]}
-                          </SelectItem>
-                        );
+                        return <SelectItem key={bhk} value={bhk}>{bhkLabelMap[bhk]}</SelectItem>;
                       })}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage id="bhk-error" aria-live="assertive" />
                 </FormItem>
-              )}
-            />
-          </div>
-          <FormField
-            control={form.control}
-            name="tags"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tags</FormLabel>
-                <FormControl>
-                  <TagInput
-                    value={field.value || []}
-                    onChange={field.onChange}
-                    suggestions={["hot", "follow-up", "NRI", "investor", "urgent", "repeat", "premium"]}
-                    placeholder="Add tags..."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              )} />
             )}
-          />
-          <Button type="submit">Create Lead</Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField control={form.control} name="purpose" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="purpose">Purpose *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger id="purpose" name="purpose" aria-required="true" aria-invalid={!!form.formState.errors.purpose} aria-describedby="purpose-error">
+                      <SelectValue placeholder="Select purpose" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PURPOSES.map((purpose) => (
+                      <SelectItem key={purpose} value={purpose}>{purpose}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage id="purpose-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="source" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="source">Source *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger id="source" name="source" aria-required="true" aria-invalid={!!form.formState.errors.source} aria-describedby="source-error">
+                      <SelectValue placeholder="Select source" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {SOURCES.map((source) => (
+                      <SelectItem key={source} value={source}>{source}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage id="source-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="timeline" render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="timeline">Timeline *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger id="timeline" name="timeline" aria-required="true" aria-invalid={!!form.formState.errors.timeline} aria-describedby="timeline-error">
+                      <SelectValue placeholder="Select timeline" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {TIMELINES.map((timeline) => {
+                      const timelineLabelMap: Record<string, string> = {
+                        ZeroToThreeMonths: '0-3m',
+                        ThreeToSixMonths: '3-6m',
+                        OverSixMonths: '>6m',
+                        Exploring: 'Exploring',
+                      };
+                      return <SelectItem key={timeline} value={timeline}>{timelineLabelMap[timeline]}</SelectItem>;
+                    })}
+                  </SelectContent>
+                </Select>
+                <FormMessage id="timeline-error" aria-live="assertive" />
+              </FormItem>
+            )} />
+          </div>
+          <FormField control={form.control} name="tags" render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="tags">Tags</FormLabel>
+              <FormControl>
+                <TagInput value={field.value || []} onChange={field.onChange} suggestions={["hot", "follow-up", "NRI", "investor", "urgent", "repeat", "premium"]} placeholder="Add tags..." />
+              </FormControl>
+              <FormMessage id="tags-error" aria-live="assertive" />
+            </FormItem>
+          )} />
+          <div className="flex justify-center pt-6">
+            <Button type="submit" className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-all text-lg">Create Lead</Button>
+          </div>
         </form>
       </FormProvider>
-    </div>
-  )
+    );
 }

@@ -9,6 +9,19 @@ export default async function BuyerViewEditPage({ params }: { params: Promise<{ 
   });
   if (!buyer) return notFound();
 
+  // Get session user
+  const { getIronSession } = await import('iron-session');
+  const { sessionOptions } = await import('@/lib/session');
+  const { cookies } = await import('next/headers');
+  const cookieObj = await cookies();
+  const cookieStore = {
+    get: (name: string) => cookieObj.get(name),
+    set: () => {},
+  };
+  const session = await getIronSession(cookieStore, sessionOptions);
+  const userId = (session as { userId?: string }).userId || null;
+  const user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+
   const history = await prisma.buyerHistory.findMany({
     where: { buyerId: id },
     orderBy: { changedAt: 'desc' },
@@ -19,6 +32,7 @@ export default async function BuyerViewEditPage({ params }: { params: Promise<{ 
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">View / Edit Buyer Lead</h1>
-      <EditBuyerForm buyer={{ ...buyer, updatedAt: buyer.updatedAt.toISOString() }} history={history} />
+      <EditBuyerForm buyer={{ ...buyer, updatedAt: buyer.updatedAt.toISOString() }} history={history} user={user} />
     </div>
-)};
+  );
+}

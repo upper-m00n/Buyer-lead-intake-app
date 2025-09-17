@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function EditBuyerForm({ buyer, history }: { buyer: any, history: any[] }) {
+export default function EditBuyerForm({ buyer, history, user }: { buyer: any, history: any[], user?: any }) {
   const router = useRouter();
   return (
     <form className="space-y-4" onSubmit={async (e) => {
@@ -34,7 +34,8 @@ export default function EditBuyerForm({ buyer, history }: { buyer: any, history:
         toast.error('You are not the owner')
       }
        else {
-        alert(result.error || 'Error updating buyer');
+        toast.error("Error while updating",result.error);
+        console.log("error",result.error);
       }
     }}>
       <input type="hidden" name="updatedAt" defaultValue={buyer.updatedAt} />
@@ -54,7 +55,9 @@ export default function EditBuyerForm({ buyer, history }: { buyer: any, history:
         <label>Notes<textarea name="notes" defaultValue={buyer.notes || ''} className="border p-2 w-full" /></label>
         <label>Tags<input name="tags" defaultValue={buyer.tags.join(', ')} className="border p-2 w-full" /></label>
       </div>
-      <Button type="submit">Save Changes</Button>
+      {(user && (user.id === buyer.ownerId || user.isAdmin)) && (
+        <Button type="submit">Save Changes</Button>
+      )}
       <div className="mt-0">
         <Link href="/buyers"><Button variant="outline">Back to List</Button></Link>
       </div>

@@ -29,10 +29,33 @@ import { BuyerSchema } from '@/lib/validators';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+const RATE_LIMIT = 5;
+const WINDOW_MS = 60 * 1000;
+const rateLimitMap = new Map<string, { count: number; start: number }>();
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
     let body = await request.json();
+
+    // Robustly map bhk value to enum
+    const bhkEnum = ["One", "Two", "Three", "Four", "Studio"];
+    const bhkMap: Record<string, string> = {
+      "1 BHK": "One",
+      "2 BHK": "Two",
+      "3 BHK": "Three",
+      "4 BHK": "Four",
+      "Studio": "Studio",
+      "One": "One",
+      "Two": "Two",
+      "Three": "Three",
+      "Four": "Four"
+    };
+    if (typeof body.bhk === "string") {
+      const mapped = bhkMap[body.bhk.trim()];
+      body.bhk = mapped && bhkEnum.includes(mapped) ? mapped : undefined;
+    } else {
+      body.bhk = undefined;
+    }
 
     if (typeof body.tags === 'string') {
       body.tags = body.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
@@ -50,6 +73,22 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
     if (!session.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Simple rate limit per user/IP
+  let ipCookie = cookieObj.get('ip');
+  const ip = typeof ipCookie === 'string' ? ipCookie : ipCookie?.value || '';
+  const userKey = session.userId || ip || 'anon';
+    const now = Date.now();
+    const entry = rateLimitMap.get(userKey) || { count: 0, start: now };
+    if (now - entry.start > WINDOW_MS) {
+      entry.count = 0;
+      entry.start = now;
+    }
+    entry.count++;
+    rateLimitMap.set(userKey, entry);
+    if (entry.count > RATE_LIMIT) {
+      return NextResponse.json({ error: 'Rate limit exceeded. Try again later.' }, { status: 429 });
     }
     const data = parsed.data;
    
