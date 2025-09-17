@@ -3,8 +3,18 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import type { Buyer, BuyerHistory, User } from '@/lib/types';
 
-export default function EditBuyerForm({ buyer, history, user }: { buyer: any, history: any[], user?: any }) {
+
+export default function EditBuyerForm({
+  buyer,
+  history,
+  user,
+}: {
+  buyer: Buyer;
+  history: BuyerHistory[];
+  user?: User;
+}) {
   const router = useRouter();
   return (
     <form className="space-y-4" onSubmit={async (e) => {
