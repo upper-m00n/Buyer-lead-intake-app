@@ -1,5 +1,5 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { BuyerSchema } from '@/lib/validators';
 import { getIronSession } from 'iron-session';
@@ -10,10 +10,10 @@ const RATE_LIMIT = 5;
 const WINDOW_MS = 60 * 1000;
 const rateLimitMap = new Map<string, { count: number; start: number }>();
 
-export async function POST(request: Request, context: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const body = await request.json();
-    const { id } = context.params;
+  const body = await request.json();
+  const { id } = await context.params;
     // Robustly map bhk value to enum
     const bhkEnum = ["One", "Two", "Three", "Four", "Studio"];
     const bhkMap: Record<string, string> = {
@@ -125,9 +125,9 @@ export async function POST(request: Request, context: { params: { id: string } }
   }
 }
 
-export async function DELETE(request: Request, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+  const { id } = await context.params;
     const cookieObj = await cookies();
     const cookieStore = {
       get: (name: string) => cookieObj.get(name),
