@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   const { userId } = session
 
   if (!userId && request.nextUrl.pathname.startsWith('/buyers/new')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/auth/login', request.url))
   }
   return NextResponse.next()
 }

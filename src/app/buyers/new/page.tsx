@@ -77,7 +77,7 @@ export default function CreateBuyerPage() {
               <FormItem>
                 <FormLabel htmlFor="fullName">Full Name *</FormLabel>
                 <FormControl>
-                  <Input className="input input-bordered w-full" placeholder="John Doe" {...field} id="fullName" name="fullName" aria-required="true" aria-invalid={!!form.formState.errors.fullName} aria-describedby="fullName-error" />
+                  <Input className="input input-bordered w-full" placeholder="Your name" {...field} id="fullName" name="fullName" aria-required="true" aria-invalid={!!form.formState.errors.fullName} aria-describedby="fullName-error" />
                 </FormControl>
                 <FormMessage id="fullName-error" aria-live="assertive" />
               </FormItem>
@@ -86,7 +86,7 @@ export default function CreateBuyerPage() {
               <FormItem>
                 <FormLabel htmlFor="email">Email</FormLabel>
                 <FormControl>
-                  <Input className="input input-bordered w-full" placeholder="john.doe@example.com" {...field} id="email" name="email" aria-invalid={!!form.formState.errors.email} aria-describedby="email-error" />
+                  <Input className="input input-bordered w-full" placeholder="your gmail" {...field} id="email" name="email" aria-invalid={!!form.formState.errors.email} aria-describedby="email-error" />
                 </FormControl>
                 <FormMessage id="email-error" aria-live="assertive" />
               </FormItem>
