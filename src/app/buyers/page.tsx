@@ -86,6 +86,7 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-6">Buyer Leads</h1>
+        <Link href='/buyers/new'><Button>Create new lead</Button></Link>
         <ImportExportCSV params={params.toString()} />
         <form className="mb-4 grid grid-cols-1 md:grid-cols-6 gap-4" action="" method="get">
           <select name="city" defaultValue={city} className="border p-2 rounded">

@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# Buyer Lead Intake App
 
-First, run the development server:
+A full-stack Next.js app for managing real estate buyer leads, with secure ownership, admin controls, CSV import/export, and production-quality features.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Setup
+
+### 1. Clone & Install
+```sh
+git clone <repo-url>
+cd buyer-lead-app
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables
+Create a `.env` file:
+```
+DATABASE_URL=postgresql://<user>:<password>@localhost:5432/buyer_leads
+SESSION_PASSWORD=your-strong-session-secret
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Database Migrate & Seed
+```sh
+npx prisma migrate dev
+npx prisma db seed
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run Locally
+```sh
+npm run dev
+```
+App runs at http://localhost:3000
 
-## Learn More
+## Design Notes
 
-To learn more about Next.js, take a look at the following resources:
+- **Validation:**
+	- All form and API validation is handled with Zod schemas in `src/lib/validators.ts`.
+	- Client forms use React Hook Form + Zod for instant feedback.
+	- Server routes re-validate all input before DB writes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **SSR vs Client:**
+	- Buyers list, filters, and pagination are SSR for fast load and SEO.
+	- Status quick-actions, tag chips, and file upload are client components for interactivity.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Ownership Enforcement:**
+	- Only the owner or admin can edit/delete a buyer lead (enforced in API and UI).
+	- Imported leads are assigned to the importing user as owner.
+	- UI hides edit/delete for non-owners/admins.
 
-## Deploy on Vercel
+## Features: Done vs Skipped
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Done
+- Buyer creation/editing forms with validation
+- SSR buyers list with filters, search, pagination
+- View/edit page with history tracking
+- CSV import/export with error table
+- Ownership/auth logic, admin role
+- Tag chips/typeahead, status quick-actions
+- Rate limiting on create/update
+- Error boundary, empty state, accessibility basics
+- Jest unit test for budget validator
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Skipped / Deferred
+- File upload for attachments (planned, not yet implemented)
+
+
+**Why Skipped?**
+- File upload: requires additional storage setup and UI polish
+

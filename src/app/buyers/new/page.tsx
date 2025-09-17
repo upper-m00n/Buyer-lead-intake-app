@@ -34,6 +34,7 @@ import {
   TIMELINES,
 } from '@/lib/types'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 type BuyerFormData = z.infer<typeof BuyerSchema>
 
@@ -56,8 +57,6 @@ export default function CreateBuyerPage() {
       tags: [],
     },
   });
-
-    // ...existing logic for submit handler, etc...
 
     const onSubmit = async (data: BuyerFormData) => {
       try {
@@ -260,6 +259,7 @@ export default function CreateBuyerPage() {
           )} />
           <div className="flex justify-center pt-6">
             <Button type="submit" className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-all text-lg">Create Lead</Button>
+            <Link href='/buyers' className='ml-5'><Button>Buyers List</Button></Link>
           </div>
         </form>
       </FormProvider>
