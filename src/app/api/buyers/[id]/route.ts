@@ -1,45 +1,19 @@
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const cookieObj = await cookies();
-    const cookieStore = {
-      get: (name: string) => cookieObj.get(name),
-      set: () => {},
-    };
-    const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
-    if (!session.userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const buyer = await prisma.buyer.findUnique({ where: { id: params.id } });
-    if (!buyer) {
-      return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
-    }
-  const user = await prisma.user.findUnique({ where: { id: session.userId } });
-  if (buyer.ownerId !== session.userId && !(user as { isAdmin?: boolean })?.isAdmin) {
-      return NextResponse.json({ error: 'Forbidden: You do not own this buyer.' }, { status: 403 });
-    }
-    await prisma.buyer.delete({ where: { id: params.id } });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Server error', details: error }, { status: 500 });
-  }
-}
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { BuyerSchema } from '@/lib/validators';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+
 const RATE_LIMIT = 5;
 const WINDOW_MS = 60 * 1000;
 const rateLimitMap = new Map<string, { count: number; start: number }>();
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, context: { params: { id: string } }) {
   try {
-  const body = await request.json();
-
+    const body = await request.json();
+    const { id } = context.params;
     // Robustly map bhk value to enum
     const bhkEnum = ["One", "Two", "Three", "Four", "Studio"];
     const bhkMap: Record<string, string> = {
@@ -79,9 +53,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     // Simple rate limit per user/IP
-  const ipCookie = cookieObj.get('ip');
-  const ip = typeof ipCookie === 'string' ? ipCookie : ipCookie?.value || '';
-  const userKey = session.userId || ip || 'anon';
+    const ipCookie = cookieObj.get('ip');
+    const ip = typeof ipCookie === 'string' ? ipCookie : ipCookie?.value || '';
+    const userKey = session.userId || ip || 'anon';
     const now = Date.now();
     const entry = rateLimitMap.get(userKey) || { count: 0, start: now };
     if (now - entry.start > WINDOW_MS) {
@@ -94,8 +68,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: 'Rate limit exceeded. Try again later.' }, { status: 429 });
     }
     const data = parsed.data;
-   
-    const existing = await prisma.buyer.findUnique({ where: { id: params.id } });
+
+    const existing = await prisma.buyer.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
     }
@@ -107,7 +81,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (new Date(body.updatedAt).getTime() !== new Date(existing.updatedAt).getTime()) {
       return NextResponse.json({ error: 'Record changed, please refresh.' }, { status: 409 });
     }
-  
+
     const updateData: Record<string, unknown> = {
       ...data,
       bhk: data.bhk ? data.bhk : null,
@@ -128,12 +102,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
         diff[key] = { old: (existing as Record<string, unknown>)[key], new: (updateData as Record<string, unknown>)[key] };
       }
     });
-  
+
     const updated = await prisma.buyer.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     });
-    
+
     await prisma.buyerHistory.create({
       data: {
         buyerId: updated.id,
@@ -144,6 +118,36 @@ export async function POST(request: Request, { params }: { params: { id: string 
     return NextResponse.json({ success: true, buyer: updated });
   } catch (error) {
     console.log("Error while updating..", error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Server error', details: error }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request, context: { params: { id: string } }) {
+  try {
+    const { id } = context.params;
+    const cookieObj = await cookies();
+    const cookieStore = {
+      get: (name: string) => cookieObj.get(name),
+      set: () => {},
+    };
+    const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+    if (!session.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const existing = await prisma.buyer.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
+    }
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
+    if (existing.ownerId !== session.userId && !(user as { isAdmin?: boolean })?.isAdmin) {
+      return NextResponse.json({ error: 'Forbidden: You do not own this buyer.' }, { status: 403 });
+    }
+    await prisma.buyer.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
     }
