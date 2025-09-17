@@ -5,8 +5,8 @@ import { getIronSession } from 'iron-session';
 import { sessionOptions } from '@/lib/session';
 import { cookies } from 'next/headers';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const { status } = await req.json();
   if (!STATUSES.includes(status)) {
     return Response.json({ error: 'Invalid status' }, { status: 400 });
