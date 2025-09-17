@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import {
-  Form,
+  // Form,
   FormControl,
   FormField,
   FormItem,
@@ -63,8 +63,14 @@ export default function CreateBuyerPage() {
         await axios.post('/api/buyers', data);
         toast.success('Buyer lead created successfully!');
         form.reset();
-      } catch (error: any) {
-        toast.error(error?.response?.data?.message || 'Failed to create buyer lead');
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          toast.error(error.response?.data?.message || 'Failed to create buyer lead');
+        } else if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error('Failed to create buyer lead');
+        }
       }
     };
 

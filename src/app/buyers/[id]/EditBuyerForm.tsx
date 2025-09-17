@@ -27,18 +27,18 @@ export default function EditBuyerForm(props: { buyer: Buyer; history: BuyerHisto
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        const result: unknown = await res.json();
-        if ((result as any).success) {
+        const result: { success?: boolean; error?: string } = await res.json();
+        if (result.success) {
           toast.success('Buyer updated sucessfully!');
           router.push(`/buyers`)
           window.location.reload();
-        } else if ((res as any).status === 409) {
+        } else if (res.status === 409) {
           toast.error('Record changed, please refresh and try again.');
-        } else if ((res as any).status === 403) {
+        } else if (res.status === 403) {
           toast.error('You are not the owner')
         } else {
-          toast.error("Error while updating", (result as any).error);
-          console.log("error", (result as any).error);
+          toast.error(result.error ? `Error while updating: ${result.error}` : "Error while updating");
+          console.log("error", result.error);
         }
       }}>
         <input type="hidden" name="updatedAt" defaultValue={buyer.updatedAt} />

@@ -5,7 +5,7 @@ const CSV_HEADERS = [
   'fullName','email','phone','city','propertyType','bhk','purpose','budgetMin','budgetMax','timeline','source','notes','tags','status'
 ];
 
-function escapeCSV(val: any) {
+function escapeCSV(val: unknown): string {
   if (val == null) return '';
   const str = String(val);
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {
@@ -17,7 +17,7 @@ function escapeCSV(val: any) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const params = url.searchParams;
-  const where: any = {};
+  const where: Record<string, unknown> = {};
   if (params.get('city')) where.city = params.get('city');
   if (params.get('propertyType')) where.propertyType = params.get('propertyType');
   if (params.get('status')) where.status = params.get('status');

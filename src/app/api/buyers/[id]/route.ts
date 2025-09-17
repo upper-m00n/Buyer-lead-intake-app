@@ -98,18 +98,18 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.userId } });
-    if (existing.ownerId !== session.userId && !(user as any)?.isAdmin) {
+    if (existing.ownerId !== session.userId && !(user as { isAdmin?: boolean })?.isAdmin) {
       return NextResponse.json({ error: 'Forbidden: You do not own this buyer.' }, { status: 403 });
     }
     if (new Date(body.updatedAt).getTime() !== new Date(existing.updatedAt).getTime()) {
       return NextResponse.json({ error: 'Record changed, please refresh.' }, { status: 409 });
     }
   
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       ...data,
-      bhk: data.bhk ? data.bhk as any : null,
-      timeline: data.timeline ? data.timeline as any : null,
-      source: data.source ? data.source as any : null,
+      bhk: data.bhk ? data.bhk : null,
+      timeline: data.timeline ? data.timeline : null,
+      source: data.source ? data.source : null,
       budgetMin: typeof data.budgetMin === 'number' && !isNaN(data.budgetMin) ? data.budgetMin : null,
       budgetMax: typeof data.budgetMax === 'number' && !isNaN(data.budgetMax) ? data.budgetMax : null,
       tags: Array.isArray(data.tags)
@@ -119,10 +119,10 @@ export async function POST(request: Request, { params }: { params: { id: string 
         : [],
     };
 
-    const diff: Record<string, { old: any, new: any }> = {};
+    const diff: Record<string, { old: unknown, new: unknown }> = {};
     Object.keys(updateData).forEach((key) => {
-      if ((updateData as Record<string, any>)[key] !== (existing as Record<string, any>)[key]) {
-        diff[key] = { old: (existing as Record<string, any>)[key], new: (updateData as Record<string, any>)[key] };
+      if ((updateData as Record<string, unknown>)[key] !== (existing as Record<string, unknown>)[key]) {
+        diff[key] = { old: (existing as Record<string, unknown>)[key], new: (updateData as Record<string, unknown>)[key] };
       }
     });
   
@@ -135,12 +135,15 @@ export async function POST(request: Request, { params }: { params: { id: string 
       data: {
         buyerId: updated.id,
         changedById: session.userId,
-        diff,
+        diff: JSON.parse(JSON.stringify(diff)),
       },
     });
     return NextResponse.json({ success: true, buyer: updated });
-  } catch (error: any) {
-    console.log("Error while updating..",error);
-    return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
+  } catch (error) {
+    console.log("Error while updating..", error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Server error', details: error }, { status: 500 });
   }
 }

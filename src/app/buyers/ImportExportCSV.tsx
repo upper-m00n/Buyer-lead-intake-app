@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 export default function ImportExportCSV({ params }: { params: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [importResult, setImportResult] = React.useState<{ errors: any[]; inserted: number } | null>(null);
+  type ImportError = { row: number; message: string };
+  type ImportResult = { errors: ImportError[]; inserted: number } | null;
+  const [importResult, setImportResult] = React.useState<ImportResult>(null);
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();

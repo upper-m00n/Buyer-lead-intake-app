@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { BuyerSchema } from '@/lib/validators';
+import { Prisma } from '@prisma/client';
 import { parse } from 'csv-parse/sync';
 
-const CSV_HEADERS = [
-  'fullName','email','phone','city','propertyType','bhk','purpose','budgetMin','budgetMax','timeline','source','notes','tags','status'
-];
+// CSV_HEADERS is unused, removing to fix lint warning
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -15,17 +14,17 @@ export async function POST(request: Request) {
   }
   const buffer = Buffer.from(await file.arrayBuffer());
   const text = buffer.toString('utf-8');
-  let records;
+  let records: Record<string, unknown>[];
   try {
-    records = parse(text, { columns: true, skip_empty_lines: true });
-  } catch (err) {
+    records = parse(text, { columns: true, skip_empty_lines: true }) as Record<string, unknown>[];
+  } catch {
     return NextResponse.json({ error: 'CSV parse error' }, { status: 400 });
   }
   if (records.length > 200) {
     return NextResponse.json({ error: 'Max 200 rows allowed' }, { status: 400 });
   }
   const errors: { row: number; message: string }[] = [];
-  const validRows: any[] = [];
+  const validRows: Prisma.BuyerCreateInput[] = [];
   // Get session for userId
   let userId = null;
   try {
@@ -42,9 +41,9 @@ export async function POST(request: Request) {
   } catch {}
 
   for (let i = 0; i < records.length; i++) {
-    const row = records[i] as Record<string, any>;
+    const row = records[i] as Record<string, unknown>;
     if (typeof row.tags === 'string') {
-      row.tags = row.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+      row.tags = (row.tags as string).split(',').map((t) => t.trim()).filter(Boolean);
     } else if (!Array.isArray(row.tags)) {
       row.tags = [];
     }
@@ -53,13 +52,16 @@ export async function POST(request: Request) {
     if (row.budgetMax) row.budgetMax = Number(row.budgetMax);
     const parsed = BuyerSchema.safeParse(row);
     if (!parsed.success) {
-      errors.push({ row: i + 2, message: parsed.error.issues.map((e: any) => e.message).join('; ') });
+      errors.push({ row: i + 2, message: parsed.error.issues.map((e) => e.message).join('; ') });
     } else {
       if (!userId) {
         errors.push({ row: i + 2, message: 'Missing ownerId (user not authenticated)' });
         continue;
       }
-      validRows.push({ ...parsed.data, ownerId: userId });
+      validRows.push({
+        ...(parsed.data as Prisma.BuyerCreateInput),
+        owner: { connect: { id: userId } }
+      });
     }
   }
   let inserted = 0;
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
       );
       inserted = validRows.length;
     } catch (err) {
-        console.log("importing error",err);
+      console.log("importing error", err);
       return NextResponse.json({ error: 'Database error', details: String(err) }, { status: 500 });
     }
   }

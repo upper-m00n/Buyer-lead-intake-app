@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     // Simple rate limit per user/IP
-  let ipCookie = cookieObj.get('ip');
+  const ipCookie = cookieObj.get('ip');
   const ip = typeof ipCookie === 'string' ? ipCookie : ipCookie?.value || '';
   const userKey = session.userId || ip || 'anon';
     const now = Date.now();
@@ -78,13 +78,19 @@ export async function POST(request: Request) {
         },
       })
       return NextResponse.json({ success: true, buyer })
-    } catch (prismaError: any) {
-  console.error('Prisma error:', prismaError)
-  console.error('Prisma data:', prismaData)
-  return NextResponse.json({ error: prismaError.message || 'Prisma error', details: JSON.stringify(prismaError, Object.getOwnPropertyNames(prismaError)) }, { status: 500 })
+    } catch (prismaError) {
+      console.error('Prisma error:', prismaError)
+      console.error('Prisma data:', prismaData)
+      if (prismaError instanceof Error) {
+        return NextResponse.json({ error: prismaError.message || 'Prisma error', details: JSON.stringify(prismaError, Object.getOwnPropertyNames(prismaError)) }, { status: 500 })
+      }
+      return NextResponse.json({ error: 'Prisma error', details: JSON.stringify(prismaError) }, { status: 500 })
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('API error:', error)
-    return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 })
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message || 'Server error', details: error }, { status: 500 })
+    }
+    return NextResponse.json({ error: 'Server error', details: error }, { status: 500 })
   }
 }

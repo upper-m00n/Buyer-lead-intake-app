@@ -44,7 +44,7 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
   const take = 10;
   const skip = (page - 1) * take;
 
-  const where: any = {};
+  const where: Record<string, unknown> = {};
   if (city) where.city = city;
   if (propertyType) where.propertyType = propertyType;
   if (status) where.status = status;
@@ -174,7 +174,10 @@ export default async function BuyersPage({ searchParams }: { searchParams?: Reco
         )}
       </div>
     );
-  } catch (error: any) {
-    return <ErrorBoundary error={error} />;
+  } catch (error) {
+    if (error instanceof Error) {
+      return <ErrorBoundary error={error} />;
+    }
+    return <ErrorBoundary error={new Error('Unknown error')} />;
   }
 }
